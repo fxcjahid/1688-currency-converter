@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>1688 Currency Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="heading">Currency Converter</h1>
+        <div class="exchange-fields">
+            <div class="field-title">Exchange Rate (CNY to <span id="target-currency">..</span>):</div>
+            <div class="field-input">
+                <input type="number" placeholder="Select default currency rate" id="exchange-rate" step="0.01">
+                <select name="currency" id="currency-select">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <button id="save-rate">Save Exchange Rate</button>
+        </div>
+        <div>
+            <button id="toggle-conversion" class="disable">Enable Conversion</button>
+        </div>
+        <div>
+            Current Real-time Exchange Rate:
+            <span id="realtime-rate">Loading...</span>
+            <span id="realtime-currency">..</span>
+        </div>
+        <footer class="footer">
+            <div class="author">Created & Developed by <a href="http://">Fxcjahid</a></div>
+            <div class="menus">
+                <ul>
+                    <li>Contribute</li>
+                    <li>Support</li>
+                    <li>v0.1</li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
