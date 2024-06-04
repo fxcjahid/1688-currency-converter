@@ -51,6 +51,7 @@ class ContentScript {
     }
 
     showOriginalPriceTooltip(originalPrice, priceBox) {
+        this.removeTooltip(); // remove all previos duplicate tooltips
         const tooltip = this.createTooltip(`¥ ${originalPrice.toFixed(2)}`);
         const rect = priceBox.getBoundingClientRect();
         tooltip.style.left = `${rect.left + window.scrollX}px`;
