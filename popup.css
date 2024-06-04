@@ -113,8 +113,8 @@ button.disable:hover {
 
 .footer {
     margin-top: 25px;
+    padding-top: 15px;
     border-top: 1px solid #aaaaaa;
-    padding-top: 10px;
 }
 
 .footer .author {
@@ -133,12 +133,17 @@ button.disable:hover {
     text-align: center;
 }
 
+.footer .menus ul li:first-child {
+    padding-left: 20px;
+}
+
 .footer .menus ul li {
     display: inline-block;
     text-align: center;
     color: #484848;
     font-size: 15px;
     padding-right: 20px;
+    padding-left: 10px;
     position: relative;
 }
 

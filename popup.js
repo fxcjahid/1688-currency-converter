@@ -18,60 +18,25 @@ class Popup {
     async init() {
         await this.populateCurrencySelect();
         await this.loadStoredCurrency();
-        await this.loadExchangeRate(); // Load exchange rate before displaying realtime rate
+        await this.loadExchangeRate();
         this.displayRealtimeExchangeRate();
         this.loadConversionState();
-        this.currencySelect.dispatchEvent(new Event('change')); // Trigger change event to update displayed values
     }
 
-    async populateCurrencySelect() {
-        const rates = await this.getRealtimeExchangeRate();
-        if (rates) {
-            this.currencySelect.innerHTML = '';
-            let defaultCurrency = 'USD'; // Set default currency code
-            if (!rates[defaultCurrency]) {
-                // If USD is not available, set the default currency to the first currency in the rates object
-                defaultCurrency = Object.keys(rates)[0];
-            }
-            Object.entries(rates).forEach(([currency, rate]) => {
-                const option = document.createElement('option');
-                option.value = rate.toFixed(2); // Store rate as the value
-                option.dataset.code = currency; // Store currency code as dataset
-                option.textContent = `${currency} (${rate.toFixed(2)})`;
-
-                if (currency == defaultCurrency) {
-                    option.selected = true; // Select the default currency
+    /**
+     * Utility function to get data from chrome storage
+     * @param {string} key  
+     */
+    getChromeStorage(key) {
+        return new Promise((resolve, reject) => {
+            chrome.storage.sync.get(key, (result) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
                 } else {
-                    option.selected = false;
+                    resolve(result[key] !== undefined ? result[key] : null);
                 }
-
-                this.currencySelect.appendChild(option);
             });
-        }
-    }
-
-    async loadStoredCurrency() {
-        chrome.storage.sync.get('selectedCurrency', (data) => {
-            const selectedCurrency = data.selectedCurrency;
-            if (selectedCurrency) {
-                // Find the option with the matching data-code attribute
-                const selectedOption = Array.from(this.currencySelect.options).find(option => option.dataset.code === selectedCurrency);
-                if (selectedOption) {
-                    selectedOption.selected = true; // Select the option
-                }
-            }
         });
-    }
-
-
-    async displayRealtimeExchangeRate() {
-        const rates = await this.getRealtimeExchangeRate();
-        const selectedCurrency = this.currencySelect.value;
-        if (rates && selectedCurrency) {
-            this.realtimeRateElement.innerText = selectedCurrency;
-        } else {
-            this.realtimeRateElement.innerText = 'Error fetching rate';
-        }
     }
 
     async getRealtimeExchangeRate() {
@@ -86,27 +51,71 @@ class Popup {
         }
     }
 
+    async populateCurrencySelect() {
+        const rates = await this.getRealtimeExchangeRate();
+        if (rates) {
+            this.currencySelect.innerHTML = '';
+
+            // let defaultCurrency = 'USD'; // Set default currency code
+            // if (!rates[defaultCurrency]) {
+            //     // If USD is not available, set the default currency to the first currency in the rates object
+            //     defaultCurrency = Object.keys(rates)[0];
+            // }
+
+            Object.entries(rates).forEach(([currency, rate]) => {
+                const option = document.createElement('option');
+                option.value = rate.toFixed(2); // Store rate as the value
+                option.dataset.code = currency; // Store currency code as dataset
+                option.textContent = `${currency} (${rate.toFixed(2)})`;
+
+                // if (currency == defaultCurrency) {
+                //     option.selected = true; // Select the default currency
+                // } else {
+                //     option.selected = false;
+                // }
+
+                this.currencySelect.appendChild(option);
+            });
+        }
+    }
+
+    async loadStoredCurrency() {
+
+        const getCurrencyCode = await this.getChromeStorage('selectedCurrencyCode');
+
+        if (getCurrencyCode) {
+            // Find the option with the matching data-code attribute
+            const selectedOption = Array.from(this.currencySelect.options).find(option => option.dataset.code == getCurrencyCode);
+            if (selectedOption) {
+                selectedOption.selected = true; // Select the option
+                this.realtimeCurrencyElement.innerText = getCurrencyCode; // Currency Code
+                this.targetCurrencyElement.innerText = getCurrencyCode; // Currency Code
+            }
+        }
+    }
+
+    async displayRealtimeExchangeRate() {
+        const selectedCurrency = this.currencySelect.value;
+        if (selectedCurrency) {
+            this.realtimeRateElement.innerText = selectedCurrency;
+        }
+    }
+
     async loadExchangeRate() {
-        const exchangeRate = await this.retrieveExchangeRate();
+        const exchangeRate = await this.getChromeStorage('exchangeRate');
         if (exchangeRate) {
             this.exchangeRateInput.value = exchangeRate.toFixed(2);
         }
     }
 
-    async retrieveExchangeRate() {
-        return new Promise((resolve) => {
-            chrome.storage.sync.get('exchangeRate', (data) => {
-                resolve(data.exchangeRate);
-            });
-        });
-    }
-
     saveExchangeRate() {
-        const exchangeRate = parseFloat(this.exchangeRateInput.value);
-        const selectedCurrency = this.currencySelect.value;
+        const selectedOption = this.currencySelect.options[this.currencySelect.selectedIndex];
+        const selectedCurrencyCode = selectedOption.dataset.code; // get selected currency code
+        const exchangeRate = parseFloat(this.exchangeRateInput.value); // get input exchange rate 
 
-        if (!isNaN(exchangeRate) && selectedCurrency) {
-            chrome.storage.sync.set({ exchangeRate, selectedCurrency }, () => {
+
+        if (!isNaN(exchangeRate) && selectedCurrencyCode) {
+            chrome.storage.sync.set({ exchangeRate: exchangeRate, selectedCurrencyCode: selectedCurrencyCode }, () => {
                 alert('Exchange rate and selected currency saved!');
             });
         } else {
@@ -115,8 +124,8 @@ class Popup {
     }
 
     loadConversionState() {
-        chrome.storage.sync.get('conversionEnabled', (data) => {
-            if (data.conversionEnabled) {
+        chrome.storage.sync.get('conversionEnabled', ({ conversionEnabled }) => {
+            if (conversionEnabled) {
                 this.toggleConversionButton.innerText = 'Disable Conversion';
                 this.toggleConversionButton.classList.remove('disable');
                 this.toggleConversionButton.classList.add('enable');
@@ -147,17 +156,16 @@ class Popup {
     }
 
     handleCurrencyChange() {
+        const realTimeRate = this.currencySelect.value;
         const selectedOption = this.currencySelect.options[this.currencySelect.selectedIndex];
         const selectedCurrencyCode = selectedOption.dataset.code;
         const exchangeRate = parseFloat(selectedOption.value);
 
         if (selectedCurrencyCode && exchangeRate) {
-            chrome.storage.sync.set({ selectedCurrency: selectedCurrencyCode }, () => {
-                this.exchangeRateInput.value = exchangeRate;
-                this.realtimeCurrencyElement.innerText = selectedCurrencyCode; // Currency Code
-                this.targetCurrencyElement.innerText = selectedCurrencyCode; // Currency Code
-                this.displayRealtimeExchangeRate();
-            });
+            this.exchangeRateInput.value = exchangeRate; // Input rate 
+            this.realtimeCurrencyElement.innerText = selectedCurrencyCode; // Currency Code
+            this.targetCurrencyElement.innerText = selectedCurrencyCode; // Currency Code
+            this.realtimeRateElement.innerText = realTimeRate; // Currency Real Time exchange rate 
         }
     }
 }
