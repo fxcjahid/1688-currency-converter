@@ -12,6 +12,7 @@
 </head>
 
 <body>
+    <div id="message" class="error-support"></div>
     <div class="container">
         <h1 class="heading">Currency Converter</h1>
         <div class="exchange-fields">
@@ -27,16 +28,26 @@
         <div>
             <button id="toggle-conversion" class="disable">Enable Conversion</button>
         </div>
-        <div>
+
+        <p>
+            Default Currency Symbol: <span id="currency-symbol">Loading...</span>
+        </p>
+
+        <p>
             Current Real-time Exchange Rate:
             <span id="realtime-rate">Loading...</span>
             <span id="realtime-currency">..</span>
-        </div>
+        </p>
         <footer class="footer">
-            <div class="author">Created & Developed by <a href="http://">Fxcjahid</a></div>
+            <div class="author">
+                Created & Developed by
+                <a href="https://github.com/fxcjahid" target="_blank">Fxcjahid</a>
+            </div>
             <div class="menus">
                 <ul>
-                    <li>Contribute</li>
+                    <li>
+                        <a target="_blank" href="https://github.com/fxcjahid/1688-currency-converter">Contribute</a>
+                    </li>
                     <li>Support</li>
                     <li>Version 0.1</li>
                 </ul>

@@ -10,12 +10,6 @@ body {
     min-width: 250px;
 }
 
-p {
-    color: #000a41;
-    font-size: 15px;
-    font-weight: 400;
-}
-
 input,
 button {
     margin: 10px 0;
@@ -60,13 +54,9 @@ select:focus {
     border-color: #4CAF50;
 }
 
-.error-support {
-    display: none;
-    color: red;
-    font-size: 18px;
-    font-weight: 400;
-    padding: 20px 0;
-    min-width: max-content;
+.container {
+    max-width: 460px;
+    margin: auto;
 }
 
 .heading {
@@ -85,45 +75,19 @@ select:focus {
 .field-input {
     display: flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid #00061e;
+    border: 1px solid #797979;
     border-radius: 4px;
     padding: 8px 10px;
 }
 
-.exchange-fields input,
+.form-fields input,
 select {
     border: 0;
     margin: 0;
     padding: 0;
     outline: 0;
-}
-
-button#save-rate {
     width: 100%;
-    font-size: 18px;
-    font-weight: 400;
-    padding: 8px 10px;
-    margin-bottom: 10px;
-    background: #1886dd;
-    color: #ffffff;
-    border: 0;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button.enable {
-    background-color: #f44336;
-    color: white;
-}
-
-button.disable {
-    background-color: #4CAF50;
-    color: white;
-}
-
-button.disable:hover {
-    background-color: #4CAF50;
+    height: 100%;
 }
 
 .footer {

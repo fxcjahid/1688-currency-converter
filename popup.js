@@ -6,7 +6,10 @@ class Popup {
         this.realtimeRateElement = document.getElementById('realtime-rate');
         this.targetCurrencyElement = document.getElementById('target-currency');
         this.realtimeCurrencyElement = document.getElementById('realtime-currency');
+        this.currencySymbolElement = document.getElementById('currency-symbol');
         this.currencySelect = document.getElementById('currency-select');
+        this.messageElement = document.getElementById('message');
+        this.containerElement = document.querySelector('.container');
 
         this.saveRateButton.addEventListener('click', this.saveExchangeRate.bind(this));
         this.toggleConversionButton.addEventListener('click', this.toggleConversion.bind(this));
@@ -16,11 +19,32 @@ class Popup {
     }
 
     async init() {
+        const is1688 = await this.checkIf1688();
+        if (!is1688) {
+            this.showNot1688Message();
+            return;
+        }
         await this.populateCurrencySelect();
         await this.loadStoredCurrency();
         await this.loadExchangeRate();
         this.displayRealtimeExchangeRate();
         this.loadConversionState();
+    }
+
+    async checkIf1688() {
+        return new Promise((resolve) => {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                const currentTab = tabs[0];
+                const url = new URL(currentTab.url);
+                resolve(url.hostname.endsWith('1688.com'));
+            });
+        });
+    }
+
+    showNot1688Message() {
+        this.messageElement.textContent = 'This extension only works on 1688.com';
+        this.messageElement.style.display = 'block';
+        this.containerElement.style.display = 'none';
     }
 
     /**
@@ -49,6 +73,17 @@ class Popup {
             console.error('Error fetching exchange rate:', error);
             return null;
         }
+    }
+
+    async getCurrencySymbol() {
+        const currencySymbol = await this.getChromeStorage('currencySymbol');
+
+        if (currencySymbol == "") {
+            chrome.storage.sync.set({ currencySymbol: '$' }, ({ currencySymbol }) => {
+                return currencySymbol;
+            });
+        }
+        return currencySymbol || '$';
     }
 
     async populateCurrencySelect() {
@@ -95,6 +130,7 @@ class Popup {
     }
 
     async displayRealtimeExchangeRate() {
+        this.currencySymbolElement.textContent = await this.getCurrencySymbol();
         const selectedCurrency = this.currencySelect.value;
         if (selectedCurrency) {
             this.realtimeRateElement.innerText = selectedCurrency;

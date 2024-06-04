@@ -9,16 +9,16 @@ class ContentScript {
     }
 
     initConversion() {
-        chrome.storage.sync.get(['exchangeRate', 'conversionEnabled'], (data) => {
+        chrome.storage.sync.get(['exchangeRate', 'conversionEnabled', 'currencySymbol'], (data) => {
             if (data.exchangeRate) {
-                this.convertPrices(data.exchangeRate, data.conversionEnabled);
+                this.convertPrices(data.exchangeRate, data.conversionEnabled, data.currencySymbol);
             } else {
                 console.warn('Exchange rate not set');
             }
         });
     }
 
-    convertPrices(exchangeRate, convert) {
+    convertPrices(exchangeRate, convert, currencySymbol) {
         const priceBoxes = document.querySelectorAll('.price-box');
         priceBoxes.forEach((priceBox) => {
             const unitElement = priceBox.querySelector('.price-unit');
@@ -36,13 +36,13 @@ class ContentScript {
                 if (!isNaN(originalPrice)) {
                     if (convert) {
                         const priceInBDT = (originalPrice * exchangeRate).toFixed(2);
-                        unitElement.innerText = '৳';
+                        unitElement.innerText = currencySymbol;
                         priceElement.innerText = priceInBDT;
                         priceBox.addEventListener('mouseenter', this.showOriginalPriceTooltip.bind(this, originalPrice, priceBox));
                     } else {
                         unitElement.innerText = '¥';
                         priceElement.innerText = originalPrice.toFixed(2);
-                        priceBox.addEventListener('mouseenter', this.showConvertedPriceTooltip.bind(this, originalPrice * exchangeRate, priceBox));
+                        priceBox.addEventListener('mouseenter', this.showConvertedPriceTooltip.bind(this, originalPrice * exchangeRate, priceBox, currencySymbol));
                     }
                     priceBox.addEventListener('mouseleave', this.removeTooltip);
                 }
@@ -51,15 +51,15 @@ class ContentScript {
     }
 
     showOriginalPriceTooltip(originalPrice, priceBox) {
-        const tooltip = this.createTooltip(`¥${originalPrice.toFixed(2)}`);
+        const tooltip = this.createTooltip(`¥ ${originalPrice.toFixed(2)}`);
         const rect = priceBox.getBoundingClientRect();
         tooltip.style.left = `${rect.left + window.scrollX}px`;
         tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
         priceBox.dataset.tooltipId = tooltip.id;
     }
 
-    showConvertedPriceTooltip(convertedPrice, priceBox) {
-        const tooltip = this.createTooltip(`৳ ${convertedPrice.toFixed(2)}`);
+    showConvertedPriceTooltip(convertedPrice, priceBox, currencySymbol) {
+        const tooltip = this.createTooltip(`${currencySymbol} ${convertedPrice.toFixed(2)}`);
         const rect = priceBox.getBoundingClientRect();
         tooltip.style.left = `${rect.left + window.scrollX}px`;
         tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
@@ -84,8 +84,8 @@ class ContentScript {
     bindMessageListener() {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             if (request.action === 'toggleConversion') {
-                chrome.storage.sync.get(['exchangeRate', 'conversionEnabled'], (data) => {
-                    this.convertPrices(data.exchangeRate, data.conversionEnabled);
+                chrome.storage.sync.get(['exchangeRate', 'conversionEnabled', 'currencySymbol'], (data) => {
+                    this.convertPrices(data.exchangeRate, data.conversionEnabled, data.currencySymbol);
                 });
             }
         });
