@@ -5,17 +5,29 @@ class ContentScript {
 
     init() {
         this.bindMessageListener();
-        window.addEventListener('load', this.initConversion.bind(this));
+        this.initConversion();
+    }
+
+    bindMessageListener() {
+        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+            if (request.action === 'toggleConversion') {
+                chrome.storage.sync.get(['exchangeRate', 'conversionEnabled', 'currencySymbol'], (data) => {
+                    this.convertPrices(data.exchangeRate, data.conversionEnabled, data.currencySymbol);
+                });
+            }
+        });
     }
 
     initConversion() {
-        chrome.storage.sync.get(['exchangeRate', 'conversionEnabled', 'currencySymbol'], (data) => {
-            if (data.exchangeRate) {
-                this.convertPrices(data.exchangeRate, data.conversionEnabled, data.currencySymbol);
-            } else {
-                console.warn('Exchange rate not set');
+        chrome.storage.sync.get(['exchangeRate', 'conversionEnabled', 'currencySymbol'],
+            ({ exchangeRate, conversionEnabled, currencySymbol }) => {
+                if (exchangeRate) {
+                    this.convertPrices(exchangeRate, conversionEnabled, currencySymbol);
+                } else {
+                    console.warn('Exchange rate not set');
+                }
             }
-        });
+        );
     }
 
     convertPrices(exchangeRate, convert, currencySymbol) {
@@ -81,16 +93,13 @@ class ContentScript {
             element.remove();
         });
     }
-
-    bindMessageListener() {
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.action === 'toggleConversion') {
-                chrome.storage.sync.get(['exchangeRate', 'conversionEnabled', 'currencySymbol'], (data) => {
-                    this.convertPrices(data.exchangeRate, data.conversionEnabled, data.currencySymbol);
-                });
-            }
-        });
-    }
 }
 
-new ContentScript();
+
+(function () {
+    try {
+        new ContentScript();
+    } catch (error) {
+        console.error('Failed to initialize content script:', error);
+    }
+})(); 
