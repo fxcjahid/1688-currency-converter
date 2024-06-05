@@ -87,7 +87,7 @@ class ContentScript {
         return tooltip;
     }
 
-    removeTooltip(event) {
+    removeTooltip() {
         const tooltip = document.querySelectorAll('.fxcjahid3.tooltip');
         tooltip.forEach(element => {
             element.remove();

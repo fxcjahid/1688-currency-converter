@@ -31,7 +31,7 @@
                 "content.js"
             ],
             "css": [
-                "styles.css"
+                "content.css"
             ]
         }
     ]
